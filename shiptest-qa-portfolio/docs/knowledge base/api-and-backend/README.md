@@ -4,11 +4,11 @@ This reference describes the routes and database schema in [ship-app at commit 4
 
 | Document | Use it to find |
 | --- | --- |
-| 01-authentication-api.md | Registration, login, logout, profile and session behavior |
-| 02-shipments-api.md | Request formats, shipment responses, listing, draft editing, finalization and deletion |
-| 03-rules-and-rates-api.md | Form rules, service eligibility and quote contracts |
-| 04-assistant-api.md | Chat, documentation answers, search and health |
-| 05-database-reference.md | Tables, fields, defaults, relationships and request-to-database changes |
+| [01-authentication-api.md](01-authentication-api.md) | Registration, login, logout, profile and session behavior |
+| [02-shipments-api.md](02-shipments-api.md) | Request formats, shipment responses, listing, draft editing, finalization and deletion |
+| [03-rules-and-rates-api.md](03-rules-and-rates-api.md) | Form rules, service eligibility and quote contracts |
+| [04-assistant-api.md](04-assistant-api.md) | Chat, documentation answers, search and health |
+| [05-database-reference.md](05-database-reference.md) | Tables, fields, defaults, relationships and request-to-database changes |
 
 ## Use in Postman
 

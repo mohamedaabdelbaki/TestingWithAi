@@ -3,6 +3,7 @@
 Practical QA projects using AI for requirements analysis, test design, and incident investigation.
 
 - [ShipTest QA Portfolio](shiptest-qa-portfolio/README.md) — shipping business rules, API and database reference, and a simulated shipment incident.
+- [API and database reference](shiptest-qa-portfolio/docs/knowledge%20base/api-and-backend/README.md) — endpoint contracts and database behavior.
 - [Sample test reports](sample%20ai%20projects/reports/) — test cases and a dashboard.
 - [Sample incident logs](sample%20ai%20projects/logs/) — service logs and incident evidence.
 
