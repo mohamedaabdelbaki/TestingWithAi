@@ -1,0 +1,14 @@
+interface:
+  display_name: ShipTest Frontend Expert
+  short_description: Find ShipTest controls, locators, and UI rules
+  default_prompt: Use $frontend-expert to locate the receiver country field and explain
+    when it is editable.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
