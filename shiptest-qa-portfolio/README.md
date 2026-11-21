@@ -5,8 +5,8 @@ A software testing portfolio for a shipping application. The project translates 
 | Explore | What it contains |
 | --- | --- |
 | [Business requirements](docs/requirements/ship-app-business-requirements.html) | HTML report covering the shipment workflow, validation, pricing and management. Download and open in a browser. |
-| [Business knowledge base](docs/business/README.md) | Eight functional domains with rule summaries, acceptance examples and implementation differences to investigate. |
-| [API and database reference](docs/api/README.md) | 19 API paths and 22 method/path combinations, with request and response examples, database effects and Postman setup notes. |
+| [Business knowledge base](docs/knowledge%20base/README.md) | Eight functional domains with rule summaries, acceptance examples and implementation differences to investigate. |
+| [API and database reference](docs/Backend%20and%20API%20Knowledge%20Base/README.md) | 19 API paths and 22 method/path combinations, with request and response examples, database effects and Postman setup notes. |
 | [Incident investigation](docs/incidents/shipment-incident-qa-practice.md) | AI-assisted practice exercise tracing a simulated shipment booking failure across service logs. |
 | [Incident dashboard](docs/incidents/shipment-incident-dashboard.html) | Evidence, timeline, failure ownership and payment impact for the simulation. Download and open in a browser. |
 
