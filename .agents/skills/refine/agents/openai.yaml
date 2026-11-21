@@ -1,0 +1,13 @@
+interface:
+  display_name: Refine
+  short_description: Review QA risks and open questions
+  default_prompt: Use $refine to review SHIP-2210.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
