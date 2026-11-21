@@ -18,3 +18,7 @@
 ## API and backend
 
 [API and database reference](api-and-backend/README.md) covers authentication, shipments, rates, assistants, and database behavior.
+
+## Frontend
+
+[Frontend reference](frontend/README.md) covers routes, locators, form rules, and UI workflows.
