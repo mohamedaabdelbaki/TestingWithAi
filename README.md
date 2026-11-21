@@ -11,3 +11,4 @@ Practical QA projects using AI for requirements analysis, test design, and incid
 - [Business Expert](.agents/skills/business-expert/SKILL.md) — answers questions about the app's business rules and implementation.
 - [Update the ShipTest knowledge base](.agents/skills/upadated-knowledge-base/SKILL.md) — reviews recent changes and refreshes the references. The original skills use the ShipTest source repository and ChatGPT knowledge-base documents.
 - [Refine a story](.agents/skills/refine/SKILL.md) — reviews a story number, attachment, or file path and returns short tables of risks and open questions.
+- [Local database](.agents/skills/db-local/SKILL.md) — answers questions about ShipTest records using read-only SQLite queries.

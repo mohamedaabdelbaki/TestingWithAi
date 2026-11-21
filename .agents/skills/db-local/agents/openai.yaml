@@ -1,0 +1,13 @@
+interface:
+  display_name: Local Database
+  short_description: Answer questions from ShipTest SQLite data
+  default_prompt: Use $db-local to look up shipment 7.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
