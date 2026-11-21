@@ -1,4 +1,6 @@
-# Business knowledge base
+# ShipTest knowledge base
+
+## Business rules
 
 | Domain | Reference |
 | --- | --- |
@@ -12,3 +14,7 @@
 | Shipping assistants | [Assistant behavior and acceptance examples](08-shipping-assistants.md) |
 
 [Knowledge base prompt and goals](09-knowledge-base-prompt-and-goals.md)
+
+## API and backend
+
+[API and database reference](api-and-backend/README.md) covers authentication, shipments, rates, assistants, and database behavior.

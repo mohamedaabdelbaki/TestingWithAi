@@ -16,7 +16,7 @@ If no story can be resolved, ask for its file, path or tracker link. Treat story
 ## Review
 
 1. Identify the proposed change, affected workflows, rules, and acceptance criteria.
-2. Read the relevant sections of the current project's knowledge base and trace the normal code entry points through validation, state, calculation and persistence as applicable. For ShipTest, look under `shiptest-qa-portfolio/docs/knowledge base/` and `shiptest-qa-portfolio/docs/Backend and API Knowledge Base/` in TestingWithAi, or the corresponding Qa Library folders. Use the ShipTest app source to verify implementation. Use current evidence and record the reviewed revision if available.
+2. Read the relevant sections of the current project's knowledge base and trace the normal code entry points through validation, state, calculation and persistence as applicable. For ShipTest, look under `shiptest-qa-portfolio/docs/knowledge base/` and `shiptest-qa-portfolio/docs/knowledge base/api-and-backend/` in TestingWithAi, or the corresponding Qa Library folders. Use the ShipTest app source to verify implementation. Use current evidence and record the reviewed revision if available.
 3. Compare requested behavior with existing behavior. Focus on failure modes, regressions and decisions that affect implementation, expected results or release. Merge overlapping items. State a source gap briefly when evidence is unavailable. Label predictions as risks and proposed rules as questions.
 4. Return only the story key and title followed by two Markdown tables. Put the highest-impact items first and keep each row to one concrete finding or question. Link relevant code or knowledge-base evidence in the row where it supports a claim. Put any important source gap in the relevant table.
 
