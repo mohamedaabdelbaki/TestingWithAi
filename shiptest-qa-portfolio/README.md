@@ -21,8 +21,5 @@ A software testing portfolio for a shipping application. The project translates 
 This portfolio documents requirements analysis, source review and a simulated incident investigation. The API examples use synthetic data and are derived from source. Test scenarios are design examples. No live test run or automated test suite is included in this snapshot.
 
 [ShipTest](https://github.com/mohamedaabdelbaki/ship-app/tree/447c72c4b4eca87f1b4906052eecb4fdd8bd6373) is the training application reviewed for this project. Credit for the application belongs to its original contributors. Follow the application repository’s setup instructions to run it locally.
-
-## CV entry
-
 **ShipTest QA Portfolio**  
 Analyzed eight shipping business domains, documented 22 API method and path combinations and their database effects, and created an AI-assisted incident dashboard for a simulated shipment booking failure.
