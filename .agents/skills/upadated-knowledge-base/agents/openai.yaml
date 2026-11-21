@@ -1,0 +1,14 @@
+interface:
+  display_name: Update ShipTest Knowledge Base
+  short_description: Refresh ShipTest QA docs from GitHub PRs
+  default_prompt: Use $upadated-knowledge-base to update the ShipTest knowledge base
+    for the last 7 days.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true

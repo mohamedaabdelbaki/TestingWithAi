@@ -1,0 +1,14 @@
+interface:
+  display_name: business-expert
+  short_description: ShipTest business rules with references
+  default_prompt: Use $business-expert to explain the ShipTest business requirements
+    for a shipment.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
