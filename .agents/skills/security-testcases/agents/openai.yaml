@@ -1,0 +1,14 @@
+interface:
+  display_name: Security Test Cases
+  short_description: Design defensive security verification cases
+  default_prompt: Use $security-testcases to draft ShipTest authentication and session
+    checks.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
