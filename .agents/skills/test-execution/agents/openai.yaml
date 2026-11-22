@@ -1,0 +1,14 @@
+interface:
+  display_name: Test Execution
+  short_description: Run browser tests and save evidence in Excel
+  default_prompt: Use $test-execution to run Scenario 1 in the browser and embed screenshots
+    in the same workbook.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true

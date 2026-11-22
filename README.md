@@ -15,3 +15,4 @@ Practical QA projects using AI for requirements analysis, test design, and incid
 - [Refine a story](.agents/skills/refine/SKILL.md) — reviews a story number, attachment, or file path and returns short tables of risks and open questions.
 - [Local database](.agents/skills/db-local/SKILL.md) — answers questions about ShipTest records using read-only SQLite queries.
 - [Functional Test](.agents/skills/functional-test/SKILL.md) — generates manual UI test cases in the ShipTest Excel format.
+- [Test Execution](.agents/skills/test-execution/SKILL.md) — runs browser scenarios and records results and screenshots in the Excel workbook.
