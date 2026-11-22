@@ -8,7 +8,7 @@ A software testing portfolio for a shipping application. The project translates 
 | [Business knowledge base](docs/knowledge%20base/README.md) | Eight functional domains with rule summaries, acceptance examples and implementation differences to investigate. |
 | [API and database reference](docs/knowledge%20base/api-and-backend/README.md) | 19 API paths and 22 method/path combinations, with request and response examples, database effects and Postman setup notes. |
 | [Frontend reference](docs/knowledge%20base/frontend/README.md) | Page URLs, locators, form rules, and UI workflows. |
-| [Functional test cases](test-cases/shiptest-functional-test-cases.xlsx) | 24 manual UI cases for ShipTest business rules, ready for execution. |
+| [Functional test cases](test-cases/shiptest-functional-test-cases.xlsx) | 40 manual UI cases covering all eight ShipTest business domains. |
 | [Incident investigation](docs/incidents/shipment-incident-qa-practice.md) | AI-assisted practice exercise tracing a simulated shipment booking failure across service logs. |
 | [Incident dashboard](docs/incidents/shipment-incident-dashboard.html) | Evidence, timeline, failure ownership and payment impact for the simulation. Download and open in a browser. |
 
