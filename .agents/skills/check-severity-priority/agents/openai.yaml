@@ -1,0 +1,14 @@
+interface:
+  display_name: Check Severity & Priority
+  short_description: Classify defects found during test execution
+  default_prompt: Use $check-severity-priority to classify defects found during test
+    execution.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true

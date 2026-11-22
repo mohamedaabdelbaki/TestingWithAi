@@ -17,3 +17,4 @@ Practical QA projects using AI for requirements analysis, test design, and incid
 - [Functional Test](.agents/skills/functional-test/SKILL.md) — generates manual UI test cases in the ShipTest Excel format.
 - [Test Execution](.agents/skills/test-execution/SKILL.md) — runs browser scenarios and records results and screenshots in the Excel workbook.
 - [Security Test Cases](.agents/skills/security-testcases/SKILL.md) — generates defensive security verification cases in the ShipTest Excel format.
+- [Check Severity and Priority](.agents/skills/check-severity-priority/SKILL.md) — classifies defects observed during test execution.
