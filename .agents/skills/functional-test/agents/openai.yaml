@@ -1,0 +1,14 @@
+interface:
+  display_name: Functional Test Cases
+  short_description: Design manual UI tests for business rules
+  default_prompt: Use $functional-test to create UI test cases for ShipTest pickup
+    eligibility.
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas
+  allow_implicit_invocation: true
