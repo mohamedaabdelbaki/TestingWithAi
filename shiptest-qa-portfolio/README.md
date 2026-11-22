@@ -9,6 +9,7 @@ A software testing portfolio for a shipping application. The project translates 
 | [API and database reference](docs/knowledge%20base/api-and-backend/README.md) | 19 API paths and 22 method/path combinations, with request and response examples, database effects and Postman setup notes. |
 | [Frontend reference](docs/knowledge%20base/frontend/README.md) | Page URLs, locators, form rules, and UI workflows. |
 | [Functional test cases](test-cases/shiptest-functional-test-cases.xlsx) | 40 manual UI cases across eight business domains. Results: 35 passed and 5 blocked. Includes 40 screenshots and color-coded Status dropdowns. |
+| [Security test cases](test-cases/shiptest-security-test-cases.xlsx) | 12 defensive verification cases. Browser results: 3 passed and 2 blocked. 7 source or configuration checks are pending. Includes four screenshots. |
 | [Incident investigation](docs/incidents/shipment-incident-qa-practice.md) | AI-assisted practice exercise tracing a simulated shipment booking failure across service logs. |
 | [Incident dashboard](docs/incidents/shipment-incident-dashboard.html) | Evidence, timeline, failure ownership and payment impact for the simulation. Download and open in a browser. |
 
