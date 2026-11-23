@@ -9,6 +9,7 @@ A software testing portfolio for a shipping application. The project translates 
 | [API and database reference](docs/knowledge%20base/api-and-backend/README.md) | 19 API paths and 22 method/path combinations, with request and response examples, database effects and Postman setup notes. |
 | [Frontend reference](docs/knowledge%20base/frontend/README.md) | Page URLs, locators, form rules, and UI workflows. |
 | [Functional test cases](test-cases/shiptest-functional-test-cases.xlsx) | 40 manual UI cases across eight business domains. Results: 35 passed and 5 blocked. Includes 40 screenshots and color-coded Status dropdowns. |
+| [Postman API tests](test-cases/postman/) | 57 functional requests with chained sessions, pricing and shipment lifecycle checks. |
 | [Security test cases](test-cases/shiptest-security-test-cases.xlsx) | 12 defensive verification cases. Browser results: 3 passed and 2 blocked. 7 source or configuration checks are pending. Includes four screenshots. |
 | [Incident investigation](docs/incidents/shipment-incident-qa-practice.md) | AI-assisted practice exercise tracing a simulated shipment booking failure across service logs. |
 | [Incident dashboard](docs/incidents/shipment-incident-dashboard.html) | Evidence, timeline, failure ownership and payment impact for the simulation. Download and open in a browser. |
@@ -21,7 +22,7 @@ A software testing portfolio for a shipping application. The project translates 
 
 ## Scope and evidence
 
-This portfolio documents requirements analysis, source review and a simulated incident investigation. The API examples use synthetic data and are derived from source. Test scenarios are design examples. No live test run or automated test suite is included in this snapshot.
+This portfolio documents requirements analysis, source review and a simulated incident investigation. The API examples use synthetic data and are derived from source. The Postman collection includes executable assertions. The revised API chain has passed static checks and is awaiting a full live run.
 
 [ShipTest](https://github.com/mohamedaabdelbaki/ship-app/tree/447c72c4b4eca87f1b4906052eecb4fdd8bd6373) is the training application reviewed for this project. Credit for the application belongs to its original contributors. Follow the application repository’s setup instructions to run it locally.
 **ShipTest QA Portfolio**  

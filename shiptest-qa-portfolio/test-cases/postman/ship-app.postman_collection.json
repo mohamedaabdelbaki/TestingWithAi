@@ -1,0 +1,3082 @@
+{
+  "info": {
+    "name": "ship-app",
+    "description": "Functional API QA for ShipTest. Run in folder order using ShipTest Local against a disposable local database. A unique QA account is created each run and remains in the database. Shipment cleanup targets IDs created in that run. Assistant checks use the health result to select the expected response. Keep Postman cookies enabled. Authentication chain: clear session → register → verify registration session → clear it and verify 401 → log in → verify login session → run shipment and assistant requests → log out → verify 401. The Postman cookie jar handles auth_session, an HttpOnly JWT. No bearer token or token variable is required. Run Rates before Shipments so finalization can compare its total with the quote.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "fixturePassword",
+      "value": "ShipApp-QA-Fixture-73"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Clear any existing local session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Clears the browser/client session cookie. Run after authenticated requests."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Confirms logout\", () => {",
+                  "    pm.expect(data.message).to.eql(\"Logged out successfully\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Current user requires a session",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "if (pm.response.code === 401) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Unauthorized\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login rejects missing email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{fixturePassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "if (pm.response.code === 400) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Email and password are required\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login rejects blank email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"password\": \"{{fixturePassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "if (pm.response.code === 400) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Email and password are required\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login rejects missing password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"qa@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "if (pm.response.code === 400) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Email and password are required\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registration rejects missing email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{fixturePassword}}\",\n  \"fullName\": \"QA Sender\",\n  \"phone\": \"0501234567\",\n  \"country\": \"Saudi Arabia\",\n  \"city\": \"Riyadh\",\n  \"street\": \"100 Test Street\",\n  \"postalCode\": \"12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "if (pm.response.code === 400) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"All fields are required\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registration rejects blank email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"password\": \"{{fixturePassword}}\",\n  \"fullName\": \"QA Sender\",\n  \"phone\": \"0501234567\",\n  \"country\": \"Saudi Arabia\",\n  \"city\": \"Riyadh\",\n  \"street\": \"100 Test Street\",\n  \"postalCode\": \"12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "if (pm.response.code === 400) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"All fields are required\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registration rejects invalid email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"invalid-email\",\n  \"password\": \"{{fixturePassword}}\",\n  \"fullName\": \"QA Sender\",\n  \"phone\": \"0501234567\",\n  \"country\": \"Saudi Arabia\",\n  \"city\": \"Riyadh\",\n  \"street\": \"100 Test Street\",\n  \"postalCode\": \"12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "if (pm.response.code === 400) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Invalid email format\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registration rejects short password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"qa@example.com\",\n  \"password\": \"12345\",\n  \"fullName\": \"QA Sender\",\n  \"phone\": \"0501234567\",\n  \"country\": \"Saudi Arabia\",\n  \"city\": \"Riyadh\",\n  \"street\": \"100 Test Street\",\n  \"postalCode\": \"12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "if (pm.response.code === 400) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Password must be at least 6 characters\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register Test Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Creates a test account and changes the active session.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{runEmail}}\",\n  \"password\": \"{{fixturePassword}}\",\n  \"fullName\": \"QA Sender\",\n  \"phone\": \"0501234567\",\n  \"country\": \"Saudi Arabia\",\n  \"city\": \"Riyadh\",\n  \"street\": \"100 Test Street\",\n  \"postalCode\": \"12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Creates the disposable user\", () => {",
+                  "    pm.expect(data.user.id).to.be.a(\"number\");",
+                  "    pm.expect(data.user.email).to.eql(pm.collectionVariables.get(\"runEmail\"));",
+                  "    pm.expect(data.user).not.to.have.property(\"password\");",
+                  "    pm.expect(pm.response.headers.get(\"Set-Cookie\") || \"\").to.match(/auth_session=[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+(?:;|$)/);",
+                  "  });",
+                  "  pm.collectionVariables.set(\"runUserId\", String(data.user.id));",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"runEmail\", \"qa-\" + pm.variables.replaceIn(\"{{$guid}}\") + \"@example.com\");",
+                  "[\"shipmentId\", \"trackingNumber\", \"flatId\", \"newId\"].forEach(key => pm.collectionVariables.unset(key));",
+                  "[\"runUserId\", \"quotedTotal\", \"assistantConfigured\"].forEach(key => pm.collectionVariables.unset(key));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registration rejects duplicate email",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{runEmail}}\",\n  \"password\": \"{{fixturePassword}}\",\n  \"fullName\": \"QA Sender\",\n  \"phone\": \"0501234567\",\n  \"country\": \"Saudi Arabia\",\n  \"city\": \"Riyadh\",\n  \"street\": \"100 Test Street\",\n  \"postalCode\": \"12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));",
+                  "if (pm.response.code === 409) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Email is already registered\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login rejects wrong password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{runEmail}}\",\n  \"password\": \"WrongFixturePassword\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "if (pm.response.code === 401) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Invalid email or password\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registration session identifies the new user",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Requires auth_session. Use after Log In."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Session belongs to the test account\", () => {",
+                  "    pm.expect(data.user.id).to.be.a(\"number\");",
+                  "    pm.expect(data.user.email).to.eql(pm.collectionVariables.get(\"runEmail\"));",
+                  "    pm.expect(data.user).not.to.have.property(\"password\");",
+                  "    pm.expect(data.user.id).to.eql(Number(pm.collectionVariables.get(\"runUserId\")));",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Clear the registration session before testing login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Clears the browser/client session cookie. Run after authenticated requests."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Confirms logout\", () => {",
+                  "    pm.expect(data.message).to.eql(\"Logged out successfully\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify registration session was cleared",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "if (pm.response.code === 401) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Unauthorized\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Log In",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in as the account created in this run. The previous step verifies that the registration session was cleared, so the next signed-in check depends on this request setting the auth_session cookie.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{runEmail}}\",\n  \"password\": \"{{fixturePassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the user and sets the session cookie\", () => {",
+                  "    pm.expect(data.user.id).to.be.a(\"number\");",
+                  "    pm.expect(data.user.email).to.eql(pm.collectionVariables.get(\"runEmail\"));",
+                  "    pm.expect(data.user).not.to.have.property(\"password\");",
+                  "    pm.expect(pm.response.headers.get(\"Set-Cookie\") || \"\").to.match(/auth_session=[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+(?:;|$)/);",
+                  "    pm.expect(data.user.id).to.eql(Number(pm.collectionVariables.get(\"runUserId\")));",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Requires auth_session. Use after Log In."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Session belongs to the test account\", () => {",
+                  "    pm.expect(data.user.id).to.be.a(\"number\");",
+                  "    pm.expect(data.user.email).to.eql(pm.collectionVariables.get(\"runEmail\"));",
+                  "    pm.expect(data.user).not.to.have.property(\"password\");",
+                  "    pm.expect(data.user.id).to.eql(Number(pm.collectionVariables.get(\"runUserId\")));",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Shipment Rules",
+      "item": [
+        {
+          "name": "Sender Rules",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rules/sender",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rules",
+                "sender"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"country\": \"Saudi Arabia\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Gulf sender requires a street\", () => {",
+                  "    pm.expect(data.fields.senderStreet.required).to.eql(true);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Receiver Rules",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rules/receiver",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rules",
+                "receiver"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"country\": \"Saudi Arabia\"\n  },\n  \"to\": {\n    \"country\": \"Egypt\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the requested route context\", () => {",
+                  "    pm.expect(data.context.receiverCountry).to.eql(\"Egypt\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Package Rules",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rules/package",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rules",
+                "package"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"country\": \"Saudi Arabia\"\n  },\n  \"to\": {\n    \"country\": \"Egypt\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns International package limits\", () => {",
+                  "    pm.expect(data.shipmentType).to.eql(\"International\");",
+                  "    pm.expect(data.maxWeight).to.eql(25);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Service Options",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rules/service",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rules",
+                "service"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shipmentType\": \"International\",\n  \"package\": {\n    \"weight\": 12\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns eligible services\", () => {",
+                  "    pm.expect(data.services.map(service => service.id)).to.include(\"international_economy\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Additional Options",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rules/additional-options",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rules",
+                "additional-options"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"country\": \"Saudi Arabia\"\n  },\n  \"to\": {\n    \"country\": \"Egypt\"\n  },\n  \"package\": {\n    \"weight\": 12\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Egypt requires signature and allows home pickup at 12 kg\", () => {",
+                  "    pm.expect(data.fields.signatureRequired.checked).to.eql(true);",
+                  "    pm.expect(data.fields.pickupMethod.allowedValues).to.include(\"home\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Non-Gulf street is optional",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rules/sender",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rules",
+                "sender"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"country\": \"Egypt\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Street is optional\", () => {",
+                  "    pm.expect(data.fields.senderStreet.required).to.eql(false);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Blocked route appears in validation errors",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rules/receiver",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rules",
+                "receiver"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"country\": \"Saudi Arabia\"\n  },\n  \"to\": {\n    \"country\": \"Iraq\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Route error is present\", () => {",
+                  "    pm.expect(data.validationErrors.receiverCountry).to.be.a(\"string\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Package rules require both countries",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rules/package",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rules",
+                "package"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"country\": \"Saudi Arabia\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "if (pm.response.code === 400) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Sender and receiver countries are required\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Service rules reject unsupported shipment type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rules/service",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rules",
+                "service"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shipmentType\": \"Unknown\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "if (pm.response.code === 400) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Invalid shipment type\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Gulf express excluded at 21 kg",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rules/service",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rules",
+                "service"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shipmentType\": \"IntraGulf\",\n  \"package\": {\n    \"weight\": 21\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Only Gulf Standard is eligible\", () => {",
+                  "    pm.expect(data.services.map(service => service.id)).to.eql([\"gulf_standard\"]);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Home pickup at 17 kg",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rules/additional-options",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rules",
+                "additional-options"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"country\": \"Saudi Arabia\"\n  },\n  \"to\": {\n    \"country\": \"Egypt\"\n  },\n  \"package\": {\n    \"weight\": 17\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Checks the 17 kg pickup boundary\", () => {",
+                  "    pm.expect(data.fields.pickupMethod.allowedValues.includes(\"home\")).to.eql(true);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Home pickup at 18 kg",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rules/additional-options",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rules",
+                "additional-options"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"country\": \"Saudi Arabia\"\n  },\n  \"to\": {\n    \"country\": \"Egypt\"\n  },\n  \"package\": {\n    \"weight\": 18\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Checks the 17 kg pickup boundary\", () => {",
+                  "    pm.expect(data.fields.pickupMethod.allowedValues.includes(\"home\")).to.eql(false);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Rates",
+      "item": [
+        {
+          "name": "Calculate Shipment Quote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rates"
+              ]
+            },
+            "description": "Expected sample total is 87 USD.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"international_economy\",\n  \"weight\": 12,\n  \"senderCountry\": \"Saudi Arabia\",\n  \"receiverCountry\": \"Egypt\",\n  \"pickupMethod\": \"home\",\n  \"signatureRequired\": true,\n  \"containsLiquid\": false,\n  \"insurance\": true,\n  \"packaging\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Quote matches expected price and priced components\", () => {",
+                  "    pm.expect(data.totalPrice).to.eql(87);",
+                  "    pm.expect(data.breakdown.signatureCost).to.eql(5);",
+                  "    pm.expect(data.breakdown.insuranceCost).to.eql(15);",
+                  "  });",
+                  "  pm.collectionVariables.set(\"quotedTotal\", String(data.totalPrice));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Quote rejects missing required fields",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rates"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weight\": 12\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "if (pm.response.code === 400) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"All required fields must be filled\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Quote rejects unknown service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rates"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"unknown\",\n  \"weight\": 12,\n  \"senderCountry\": \"Saudi Arabia\",\n  \"receiverCountry\": \"Egypt\",\n  \"pickupMethod\": \"home\",\n  \"signatureRequired\": true,\n  \"containsLiquid\": false,\n  \"insurance\": true,\n  \"packaging\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+                  "if (pm.response.code === 404) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Service not found\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Quote adds liquid surcharge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rates"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceId\": \"international_economy\",\n  \"weight\": 12,\n  \"senderCountry\": \"Saudi Arabia\",\n  \"receiverCountry\": \"Egypt\",\n  \"pickupMethod\": \"home\",\n  \"signatureRequired\": true,\n  \"containsLiquid\": true,\n  \"insurance\": true,\n  \"packaging\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Applies the liquid fee\", () => {",
+                  "    pm.expect(data.breakdown.liquidCost).to.eql(10);",
+                  "    pm.expect(data.totalPrice).to.eql(97);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Shipments",
+      "item": [
+        {
+          "name": "List Shipments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments?status=all&shipmentType=all&page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "all"
+                },
+                {
+                  "key": "shipmentType",
+                  "value": "all"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns paginated shipments\", () => {",
+                  "    pm.expect(data.shipments).to.be.an(\"array\");",
+                  "    pm.expect(data.page).to.eql(1);",
+                  "    pm.expect(data.limit).to.eql(10);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject invalid shipment ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/invalid-id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "invalid-id"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "if (pm.response.code === 400) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Invalid shipment ID\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject negative package weight",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/draft",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "draft"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"name\": \"QA Sender\",\n    \"phone\": \"0501234567\",\n    \"country\": \"Saudi Arabia\",\n    \"city\": \"Riyadh\",\n    \"street\": \"100 Test Street\",\n    \"postalCode\": \"12345\"\n  },\n  \"to\": {\n    \"name\": \"QA Receiver\",\n    \"phone\": \"01012345678\",\n    \"country\": \"Egypt\",\n    \"city\": \"Cairo\",\n    \"street\": \"\",\n    \"postalCode\": \"11511\"\n  },\n  \"package\": {\n    \"weight\": -1,\n    \"length\": 20,\n    \"width\": 15,\n    \"height\": 10,\n    \"description\": \"\"\n  },\n  \"service\": {\n    \"type\": \"international_economy\",\n    \"shipmentType\": \"International\",\n    \"pickupMethod\": \"home\"\n  },\n  \"additional\": {\n    \"signature\": true,\n    \"liquid\": false,\n    \"insurance\": true,\n    \"packaging\": false\n  },\n  \"rates\": {\n    \"base\": 67,\n    \"signature\": 5,\n    \"insurance\": 15,\n    \"packaging\": 0,\n    \"total\": 87\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "if (pm.response.code === 400) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns field validation errors\", () => {",
+                  "    pm.expect(data.validationErrors).to.be.an(\"object\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Save Draft",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/draft",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "draft"
+              ]
+            },
+            "description": "Creates a disposable draft. Saves its numeric ID as shipmentId.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"name\": \"QA Sender\",\n    \"phone\": \"0501234567\",\n    \"country\": \"Saudi Arabia\",\n    \"city\": \"Riyadh\",\n    \"street\": \"100 Test Street\",\n    \"postalCode\": \"12345\"\n  },\n  \"to\": {\n    \"name\": \"QA Receiver\",\n    \"phone\": \"01012345678\",\n    \"country\": \"Egypt\",\n    \"city\": \"Cairo\",\n    \"street\": \"\",\n    \"postalCode\": \"11511\"\n  },\n  \"package\": {\n    \"weight\": 12,\n    \"length\": 20,\n    \"width\": 15,\n    \"height\": 10,\n    \"description\": \"\"\n  },\n  \"service\": {\n    \"type\": \"international_economy\",\n    \"shipmentType\": \"International\",\n    \"pickupMethod\": \"home\"\n  },\n  \"additional\": {\n    \"signature\": true,\n    \"liquid\": false,\n    \"insurance\": true,\n    \"packaging\": false\n  },\n  \"rates\": {\n    \"base\": 67,\n    \"signature\": 5,\n    \"insurance\": 15,\n    \"packaging\": 0,\n    \"total\": 87\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Creates draft with an ID and tracking number\", () => {",
+                  "    pm.expect(data.shipment.status).to.eql(\"draft\");",
+                  "    pm.expect(data.shipment.id).to.be.a(\"number\");",
+                  "    pm.expect(data.shipment.trackingNumber).to.be.a(\"string\");",
+                  "  });",
+                  "  if (Number.isInteger(data.shipment.id)) pm.collectionVariables.set(\"shipmentId\", String(data.shipment.id));",
+                  "  pm.collectionVariables.set(\"trackingNumber\", data.shipment.trackingNumber);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Draft (Flat Payload)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments"
+              ]
+            },
+            "description": "Alternative draft endpoint. Does not replace the selected shipmentId.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senderName\": \"QA Sender\",\n  \"senderPhone\": \"0501234567\",\n  \"senderCountry\": \"Saudi Arabia\",\n  \"senderCity\": \"Riyadh\",\n  \"senderStreet\": \"100 Test Street\",\n  \"senderPostalCode\": \"12345\",\n  \"receiverName\": \"QA Receiver\",\n  \"receiverPhone\": \"01012345678\",\n  \"receiverCountry\": \"Egypt\",\n  \"receiverCity\": \"Cairo\",\n  \"receiverStreet\": \"\",\n  \"receiverPostalCode\": \"11511\",\n  \"weight\": 12,\n  \"length\": 20,\n  \"width\": 15,\n  \"height\": 10,\n  \"itemDescription\": \"\",\n  \"serviceType\": \"international_economy\",\n  \"shipmentType\": \"International\",\n  \"pickupMethod\": \"home\",\n  \"signatureRequired\": true,\n  \"containsLiquid\": false,\n  \"insurance\": true,\n  \"packaging\": false,\n  \"baseCost\": 67,\n  \"signatureCost\": 5,\n  \"insuranceCost\": 15,\n  \"packagingCost\": 0,\n  \"totalCost\": 87\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Creates a draft using flat fields\", () => {",
+                  "    pm.expect(data.status).to.eql(\"draft\");",
+                  "    pm.expect(data.id).to.be.a(\"number\");",
+                  "  });",
+                  "  if (Number.isInteger(data.id)) pm.collectionVariables.set(\"flatId\", String(data.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filter International drafts and paginate",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments?status=draft&shipmentType=International&page=1&limit=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "draft"
+                },
+                {
+                  "key": "shipmentType",
+                  "value": "International"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Filters by status and type and applies page size\", () => {",
+                  "    pm.expect(data.limit).to.eql(1);",
+                  "    pm.expect(data.shipments.length).to.eql(1);",
+                  "    pm.expect(data.shipments[0].status).to.eql(\"draft\");",
+                  "    pm.expect(data.shipments[0].service.shipmentType).to.eql(\"International\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Shipment Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{shipmentId}}"
+              ]
+            },
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Reads the same draft\", () => {",
+                  "    pm.expect(data.shipment.id).to.eql(Number(pm.collectionVariables.get(\"shipmentId\")));",
+                  "    pm.expect(data.shipment.trackingNumber).to.eql(pm.collectionVariables.get(\"trackingNumber\"));",
+                  "    pm.expect(data.shipment.status).to.eql(\"draft\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"shipmentId\");",
+                  "if (!/^[1-9][0-9]*$/.test(id || \"\")) {",
+                  "  console.warn(\"Blocked: expected a shipment ID from this run. Check the creation request.\");",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "pm.variables.set(\"shipmentId\", id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Draft",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{shipmentId}}"
+              ]
+            },
+            "description": "Replaces the editable draft payload. Use before finalizing.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"name\": \"QA Sender\",\n    \"phone\": \"0501234567\",\n    \"country\": \"Saudi Arabia\",\n    \"city\": \"Riyadh\",\n    \"street\": \"100 Test Street\",\n    \"postalCode\": \"12345\"\n  },\n  \"to\": {\n    \"name\": \"QA Receiver Updated\",\n    \"phone\": \"01012345678\",\n    \"country\": \"Egypt\",\n    \"city\": \"Cairo\",\n    \"street\": \"\",\n    \"postalCode\": \"11511\"\n  },\n  \"package\": {\n    \"weight\": 12,\n    \"length\": 20,\n    \"width\": 15,\n    \"height\": 10,\n    \"description\": \"\"\n  },\n  \"service\": {\n    \"type\": \"international_economy\",\n    \"shipmentType\": \"International\",\n    \"pickupMethod\": \"home\"\n  },\n  \"additional\": {\n    \"signature\": true,\n    \"liquid\": false,\n    \"insurance\": true,\n    \"packaging\": false\n  },\n  \"rates\": {\n    \"base\": 67,\n    \"signature\": 5,\n    \"insurance\": 15,\n    \"packaging\": 0,\n    \"total\": 87\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Updates the existing draft\", () => {",
+                  "    pm.expect(data.id).to.eql(Number(pm.collectionVariables.get(\"shipmentId\")));",
+                  "    pm.expect(data.to.name).to.eql(\"QA Receiver Updated\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"shipmentId\");",
+                  "if (!/^[1-9][0-9]*$/.test(id || \"\")) {",
+                  "  console.warn(\"Blocked: expected a shipment ID from this run. Check the creation request.\");",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "pm.variables.set(\"shipmentId\", id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Finalize rejects missing Egypt signature",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/finalize",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "finalize"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"name\": \"QA Sender\",\n    \"phone\": \"0501234567\",\n    \"country\": \"Saudi Arabia\",\n    \"city\": \"Riyadh\",\n    \"street\": \"100 Test Street\",\n    \"postalCode\": \"12345\"\n  },\n  \"to\": {\n    \"name\": \"QA Receiver\",\n    \"phone\": \"01012345678\",\n    \"country\": \"Egypt\",\n    \"city\": \"Cairo\",\n    \"street\": \"\",\n    \"postalCode\": \"11511\"\n  },\n  \"package\": {\n    \"weight\": 12,\n    \"length\": 20,\n    \"width\": 15,\n    \"height\": 10,\n    \"description\": \"\"\n  },\n  \"service\": {\n    \"type\": \"international_economy\",\n    \"shipmentType\": \"International\",\n    \"pickupMethod\": \"home\"\n  },\n  \"additional\": {\n    \"signature\": false,\n    \"liquid\": false,\n    \"insurance\": true,\n    \"packaging\": false\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "if (pm.response.code === 400) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Reports the signature field error\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Validation failed\");",
+                  "    pm.expect(data.validationErrors.signatureRequired).to.include(\"Egypt\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Finalize Existing Draft",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}/finalize",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{shipmentId}}",
+                "finalize"
+              ]
+            },
+            "description": "Finalizes the selected draft using its stored values."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Finalizes the same shipment at the expected price\", () => {",
+                  "    pm.expect(data.shipment.id).to.eql(Number(pm.collectionVariables.get(\"shipmentId\")));",
+                  "    pm.expect(data.shipment.trackingNumber).to.eql(pm.collectionVariables.get(\"trackingNumber\"));",
+                  "    pm.expect(data.shipment.status).to.eql(\"finalized\");",
+                  "    pm.expect(data.shipment.rate.total).to.eql(87);",
+                  "    pm.expect(data.rateBreakdown.signatureCost).to.eql(5);",
+                  "    pm.expect(data.shipment.rate.total).to.eql(Number(pm.collectionVariables.get(\"quotedTotal\")));",
+                  "  });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"shipmentId\");",
+                  "if (!/^[1-9][0-9]*$/.test(id || \"\")) {",
+                  "  console.warn(\"Blocked: expected a shipment ID from this run. Check the creation request.\");",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "pm.variables.set(\"shipmentId\", id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read finalized shipment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{shipmentId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Keeps identity and final values\", () => {",
+                  "    pm.expect(data.shipment.id).to.eql(Number(pm.collectionVariables.get(\"shipmentId\")));",
+                  "    pm.expect(data.shipment.trackingNumber).to.eql(pm.collectionVariables.get(\"trackingNumber\"));",
+                  "    pm.expect(data.shipment.status).to.eql(\"finalized\");",
+                  "    pm.expect(data.shipment.to.name).to.eql(\"QA Receiver Updated\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"shipmentId\");",
+                  "if (!/^[1-9][0-9]*$/.test(id || \"\")) {",
+                  "  console.warn(\"Blocked: expected a shipment ID from this run. Check the creation request.\");",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "pm.variables.set(\"shipmentId\", id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject repeated finalization",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}/finalize",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{shipmentId}}",
+                "finalize"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "if (pm.response.code === 400) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Shipment is already finalized\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"shipmentId\");",
+                  "if (!/^[1-9][0-9]*$/.test(id || \"\")) {",
+                  "  console.warn(\"Blocked: expected a shipment ID from this run. Check the creation request.\");",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "pm.variables.set(\"shipmentId\", id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject editing a finalized shipment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{shipmentId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"name\": \"QA Sender\",\n    \"phone\": \"0501234567\",\n    \"country\": \"Saudi Arabia\",\n    \"city\": \"Riyadh\",\n    \"street\": \"100 Test Street\",\n    \"postalCode\": \"12345\"\n  },\n  \"to\": {\n    \"name\": \"QA Receiver Updated\",\n    \"phone\": \"01012345678\",\n    \"country\": \"Egypt\",\n    \"city\": \"Cairo\",\n    \"street\": \"\",\n    \"postalCode\": \"11511\"\n  },\n  \"package\": {\n    \"weight\": 12,\n    \"length\": 20,\n    \"width\": 15,\n    \"height\": 10,\n    \"description\": \"\"\n  },\n  \"service\": {\n    \"type\": \"international_economy\",\n    \"shipmentType\": \"International\",\n    \"pickupMethod\": \"home\"\n  },\n  \"additional\": {\n    \"signature\": true,\n    \"liquid\": false,\n    \"insurance\": true,\n    \"packaging\": false\n  },\n  \"rates\": {\n    \"base\": 67,\n    \"signature\": 5,\n    \"insurance\": 15,\n    \"packaging\": 0,\n    \"total\": 87\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));",
+                  "if (pm.response.code === 400) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Only drafts can be edited\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"shipmentId\");",
+                  "if (!/^[1-9][0-9]*$/.test(id || \"\")) {",
+                  "  console.warn(\"Blocked: expected a shipment ID from this run. Check the creation request.\");",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "pm.variables.set(\"shipmentId\", id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Finalize New Shipment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/finalize",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "finalize"
+              ]
+            },
+            "description": "Creates a separate finalized shipment. Recalculates the rate on the server.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"from\": {\n    \"name\": \"QA Sender\",\n    \"phone\": \"0501234567\",\n    \"country\": \"Saudi Arabia\",\n    \"city\": \"Riyadh\",\n    \"street\": \"100 Test Street\",\n    \"postalCode\": \"12345\"\n  },\n  \"to\": {\n    \"name\": \"QA Receiver\",\n    \"phone\": \"01012345678\",\n    \"country\": \"Egypt\",\n    \"city\": \"Cairo\",\n    \"street\": \"\",\n    \"postalCode\": \"11511\"\n  },\n  \"package\": {\n    \"weight\": 12,\n    \"length\": 20,\n    \"width\": 15,\n    \"height\": 10,\n    \"description\": \"\"\n  },\n  \"service\": {\n    \"type\": \"international_economy\",\n    \"shipmentType\": \"International\",\n    \"pickupMethod\": \"home\"\n  },\n  \"additional\": {\n    \"signature\": true,\n    \"liquid\": false,\n    \"insurance\": true,\n    \"packaging\": false\n  },\n  \"rates\": {\n    \"base\": 1,\n    \"total\": 1\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Recalculates final price from shipment data\", () => {",
+                  "    pm.expect(data.shipment.status).to.eql(\"finalized\");",
+                  "    pm.expect(data.shipment.rate.total).to.eql(87);",
+                  "    pm.expect(data.rateBreakdown.signatureCost).to.eql(5);",
+                  "    pm.expect(data.shipment.rate.total).to.eql(Number(pm.collectionVariables.get(\"quotedTotal\")));",
+                  "  });",
+                  "  if (Number.isInteger(data.shipment.id)) pm.collectionVariables.set(\"newId\", String(data.shipment.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete the flat-payload draft",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{flatId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{flatId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Confirms draft deletion\", () => {",
+                  "    pm.expect(data.message).to.eql(\"Shipment deleted successfully\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"flatId\");",
+                  "if (!/^[1-9][0-9]*$/.test(id || \"\")) {",
+                  "  console.warn(\"Blocked: expected a shipment ID from this run. Check the creation request.\");",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "pm.variables.set(\"flatId\", id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel finalized shipment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{shipmentId}}"
+              ]
+            },
+            "description": "Removes the finalized test shipment created by Save Draft."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Cancels the finalized shipment\", () => {",
+                  "    pm.expect(data.message).to.eql(\"Shipment cancelled successfully\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"shipmentId\");",
+                  "if (!/^[1-9][0-9]*$/.test(id || \"\")) {",
+                  "  console.warn(\"Blocked: expected a shipment ID from this run. Check the creation request.\");",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "pm.variables.set(\"shipmentId\", id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancelled shipment is no longer found",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{shipmentId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 404\", () => pm.response.to.have.status(404));",
+                  "if (pm.response.code === 404) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Shipment not found\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"shipmentId\");",
+                  "if (!/^[1-9][0-9]*$/.test(id || \"\")) {",
+                  "  console.warn(\"Blocked: expected a shipment ID from this run. Check the creation request.\");",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "pm.variables.set(\"shipmentId\", id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel the directly finalized shipment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/shipments/{{newId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "shipments",
+                "{{newId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Confirms cancellation\", () => {",
+                  "    pm.expect(data.message).to.eql(\"Shipment cancelled successfully\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get(\"newId\");",
+                  "if (!/^[1-9][0-9]*$/.test(id || \"\")) {",
+                  "  console.warn(\"Blocked: expected a shipment ID from this run. Check the creation request.\");",
+                  "  pm.execution.skipRequest();",
+                  "}",
+                  "pm.variables.set(\"newId\", id);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Shipping Assistants",
+      "item": [
+        {
+          "name": "Check Assistant Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/agent/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "agent",
+                "health"
+              ]
+            },
+            "description": "HTTP 200 can include ok:false. Inspect hints before using assistant routes."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Reports AI availability and index status\", () => {",
+                  "    pm.expect(data.apiKeyConfigured).to.be.a(\"boolean\");",
+                  "    pm.expect(data.indexedChunks).to.be.a(\"number\");",
+                  "    pm.expect(data.ok).to.eql(data.apiKeyConfigured && data.indexedChunks > 0);",
+                  "  });",
+                  "  pm.collectionVariables.set(\"assistantConfigured\", String(data.apiKeyConfigured));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Chat About Shipping",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/agent/chat",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "agent",
+                "chat"
+              ]
+            },
+            "description": "Requires a configured assistant and a session. May incur model usage.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Explain the home pickup rule without making any changes.\",\n  \"history\": [],\n  \"formContext\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const configured = pm.collectionVariables.get(\"assistantConfigured\");",
+                  "pm.test(\"Assistant health must run first\", () => pm.expect(configured).to.be.oneOf([\"true\", \"false\"]));",
+                  "const expected = configured === \"false\" ? 503 : 200;",
+                  "pm.test(\"Returns HTTP \" + expected + \" for the detected configuration\", () => pm.response.to.have.status(expected));",
+                  "if (pm.response.code === expected) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(expected === 200 ? \"Returns the assistant response\" : \"Reports unavailable configuration\", () => {",
+                  "    if (expected === 200) pm.expect(data.reply).to.be.a(\"string\");",
+                  "    else pm.expect(data.error).to.be.a(\"string\").and.not.empty;",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ask Shipping Rules",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/assistant/ask",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "assistant",
+                "ask"
+              ]
+            },
+            "description": "Requires a configured assistant and a session.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"When is signature required?\",\n  \"k\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const configured = pm.collectionVariables.get(\"assistantConfigured\");",
+                  "pm.test(\"Assistant health must run first\", () => pm.expect(configured).to.be.oneOf([\"true\", \"false\"]));",
+                  "const expected = configured === \"false\" ? 503 : 200;",
+                  "pm.test(\"Returns HTTP \" + expected + \" for the detected configuration\", () => pm.response.to.have.status(expected));",
+                  "if (pm.response.code === expected) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(expected === 200 ? \"Returns the assistant response\" : \"Reports unavailable configuration\", () => {",
+                  "    if (expected === 200) pm.expect(data.sources).to.be.a(\"array\");",
+                  "    else pm.expect(data.error).to.be.a(\"string\").and.not.empty;",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search Shipping Documentation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/assistant/search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "assistant",
+                "search"
+              ]
+            },
+            "description": "Requires a configured assistant and a session.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"home pickup weight\",\n  \"k\": 4,\n  \"minScore\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const configured = pm.collectionVariables.get(\"assistantConfigured\");",
+                  "pm.test(\"Assistant health must run first\", () => pm.expect(configured).to.be.oneOf([\"true\", \"false\"]));",
+                  "const expected = configured === \"false\" ? 503 : 200;",
+                  "pm.test(\"Returns HTTP \" + expected + \" for the detected configuration\", () => pm.response.to.have.status(expected));",
+                  "if (pm.response.code === expected) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(expected === 200 ? \"Returns the assistant response\" : \"Reports unavailable configuration\", () => {",
+                  "    if (expected === 200) pm.expect(data.results).to.be.a(\"array\");",
+                  "    else pm.expect(data.error).to.be.a(\"string\").and.not.empty;",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Session teardown",
+      "item": [
+        {
+          "name": "Log Out",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Clears the browser/client session cookie. Run after authenticated requests."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Confirms logout\", () => {",
+                  "    pm.expect(data.message).to.eql(\"Logged out successfully\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Current user is rejected after logout",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 401\", () => pm.response.to.have.status(401));",
+                  "if (pm.response.code === 401) {",
+                  "  const data = pm.response.json();",
+                  "  pm.test(\"Returns the expected validation message\", () => {",
+                  "    pm.expect(data.error).to.eql(\"Unauthorized\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
